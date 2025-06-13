@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="./imgs/casa1.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visor de mapas</title>
+</head>
+
+<body>
+  <div id="map"></div>
+  <div id="map-title"><img src="./imgs/casa2.png"> Visor de mapas</div>
+  <div id="popup" class="ol-popup">
+    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+    <div id="popup-content"></div>
+  </div>
+  <div id="mouse-position" class="mouse-position">
+    <div id="proyeccion">
+      <strong>Proyección:</strong>
+      <select id="srid">
+        <option value="32717">WGS84 - Zona 17S</option>
+        <option value="32718">WGS84 - Zona 18S</option>
+        <option value="32719" selected="selected">WGS84 - Zona 19S</option>
+        <option value="4326">WGS84</option>
+      </select>
+    </div>
+    <div id="coordenadas"></div>
+    <div id="scale"><strong>| Escala:</strong></div>
+  </div>
+  <div id="button-group" class="button-group">
+    <button id="controlVistaGeneral" class="btn btn-danger" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Vista general"><i class="bi bi-house-door"></i></button>
+    <button id="controlMas" class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Acercase al mapa"><i class="bi bi-plus"></i></button>
+    <button id="controlMenos" class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Alejarse al mapa"><i class="bi bi-dash"></i></button>
+    <button data-panel="panel1" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Buscar por Centro Poblado"><i class="bi bi-search"></i></button>
+    <button data-panel="panel2" class="btn btn-warning" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Cargar archivo SHP"><i class="bi bi-upload"></i></button>
+    <button data-panel="panel3" class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Ubicar coordenadas"><span class="img-svg-uc"></span></button>
+    <button id="obtenerInformacion" class="btn btn-success" data-bs-toggle="tooltip" data-bs-placement="top"
+      data-bs-title="Obtener información"><i class="bi bi-info-circle"></i></button>
+  </div>
+
+  <div id="panel1" class="side-panel card" style="display: none;">
+    <div class="panel-header d-flex justify-content-between align-items-center p-2">
+      <p class="mb-0">Buscar por Centro Poblado</p>
+      <button class="btn-close" data-close="panel1" aria-label="Cerrar"></button>
+    </div>
+    <div class="card-body p-3">
+      <div class="mb-3 row">
+        <label for="txtBuscar" class="form-label">Buscar:</label>
+        <div class="col-sm-8">
+          <input type="text" class="form-control" id="txtBuscar" placeholder="Digite un lugar..." maxlength="100"
+            style="width: 270px;">
+        </div>
+      </div>
+
+      <div id="mensajeConsulta" class="col-auto table-container"></div>
+      <hr class="my-3" />
+      <div class="mb-3 row" id="resultado"></div>
+    </div>
+  </div>
+
+  <div id="panel2" class="side-panel card" style="display: none;">
+    <div class="panel-header d-flex justify-content-between align-items-center p-2">
+      <p class="mb-0">Cargar Archivo ShapeFile</p>
+      <button class="btn-close" data-close="panel2" aria-label="Cerrar"></button>
+    </div>
+    <div class="card-body p-3">
+      <div class="mb-3">
+        <label for="archivoZipKmlKmz" class="form-label">
+          Cargar un archivo de formato Shape File comprimido (.zip)
+        </label>
+        <input class="form-control" type="file" id="archivoZipKmlKmz" aria-describedby="archivoHelp" />
+      </div>
+      <hr class="my-2" />
+      <div class="d-flex gap-2">
+        <button id="subirArchivo" class="btn btn-outline-primary">
+          <i class="bi bi-box-arrow-up"></i> Subir
+        </button>
+        <button id="limpiarArchivo" class="btn btn-outline-danger">
+          <i class="bi bi-trash"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel3" class="side-panel card" style="display: none;">
+    <div class="panel-header d-flex justify-content-between align-items-center p-2">
+      <p class="mb-0">Ubicar por coordenadas</p>
+      <button class="btn-close" data-close="panel3" aria-label="Cerrar"></button>
+    </div>
+    <div class="card-body p-3">
+      <div class="mb-3">
+        <label for="sistemaReferencia" class="col-form-label-sm">
+          Sistema de referencia:
+        </label>
+        <select id="sistemaReferencia" class="form-select form-select-sm">
+          <option value="4326" selected>WGS84 (decimales)</option>
+          <option value="32717">UTM 17S</option>
+          <option value="32718">UTM 18S</option>
+          <option value="32719">UTM 19S</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="coordenadasX" class="col-form-label col-form-label-sm" id="labelX">Longitud:</label>
+        <input type="text" class="form-control form-control-sm" id="coordenadaX">
+      </div>
+      <div class="mb-3">
+        <label for="coordenadasY" class="col-form-label col-form-label-sm" id="labelY">Latitud:</label>
+        <input type="text" class="form-control form-control-sm" id="coordenadaY">
+      </div>
+      <div class="mb-3">
+        <div id="mensajeUbicarCoordenadas"></div>
+      </div>
+      <hr class="my-3" />
+
+      <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+        <button id="ubicarCoordenadas" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-crosshair"></i> Ir
+        </button>
+        <button id="limpiarCoordenadas" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-trash"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+
+</html>

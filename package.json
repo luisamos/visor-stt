@@ -1,0 +1,23 @@
+{
+  "name": "visor-stt",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "fuse.js": "^7.1.0",
+    "jszip": "^3.10.1",
+    "ol": "latest",
+    "ol-ext": "^4.0.24",
+    "ol-layerswitcher": "^4.1.2",
+    "proj4": "^2.17.0",
+    "shpjs": "^6.1.0"
+  }
+}
