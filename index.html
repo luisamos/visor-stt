@@ -9,7 +9,7 @@
 </head>
 <body>
 
-  <!-- ══ LOADER OVERLAY ══ -->
+  <!-- LOADER -->
   <div id="app-loader">
     <div class="loader-card">
       <img src="./imgs/casa2.png" alt="Logo" class="loader-logo" />
@@ -25,41 +25,43 @@
   <!-- NAVBAR -->
   <nav id="main-navbar">
     <div class="nav-left">
-      <button id="toggleSidebar" title="Mostrar/Ocultar capas">
+      <button id="toggleSidebar" title="Mostrar/Ocultar panel de capas">
         <i class="bi bi-layout-sidebar-reverse"></i>
       </button>
       <div class="brand">
         <img src="./imgs/casa2.png" alt="Logo" />
-        <span>Visor de Mapas</span>
+        <div class="brand-text">
+          <span class="brand-name">Visor de Mapas</span>
+          <span class="brand-sub">Sistema de Tenencia de Tierras</span>
+        </div>
       </div>
     </div>
+
     <div class="nav-tools">
-      <button id="controlVistaGeneral" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Vista general">
-        <i class="bi bi-house-door"></i>
-      </button>
-      <button id="controlMas" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Acercarse">
-        <i class="bi bi-zoom-in"></i>
-      </button>
-      <button id="controlMenos" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Alejarse">
-        <i class="bi bi-zoom-out"></i>
-      </button>
-      <div class="tool-sep"></div>
-      <button data-panel="panel1" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Buscar por Centro Poblado">
-        <i class="bi bi-search"></i>
-      </button>
-      <button data-panel="panel2" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Cargar archivo SHP / KML">
-        <i class="bi bi-upload"></i>
-      </button>
-      <button data-panel="panel3" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Ubicar coordenadas">
-        <span class="img-svg-uc"></span>
-      </button>
-      <button id="obtenerInformacion" class="tool-btn" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Obtener informacion del mapa">
-        <i class="bi bi-info-circle"></i>
-      </button>
+      <!-- Navegación -->
+      <button id="controlVistaGeneral" class="tool-btn" title="Vista general"><i class="bi bi-house-door"></i></button>
+      <button id="controlMas"          class="tool-btn" title="Acercarse"><i class="bi bi-zoom-in"></i></button>
+      <button id="controlMenos"        class="tool-btn" title="Alejarse"><i class="bi bi-zoom-out"></i></button>
+      <span class="tool-sep"></span>
+      <!-- Herramientas -->
+      <button data-panel="panel1" class="tool-btn" title="Buscar por Centro Poblado"><i class="bi bi-search"></i></button>
+      <button data-panel="panel2" class="tool-btn" title="Cargar archivo SHP / KML"><i class="bi bi-upload"></i></button>
+      <button data-panel="panel3" class="tool-btn" title="Ubicar coordenadas"><span class="img-svg-uc"></span></button>
+      <button id="obtenerInformacion" class="tool-btn" title="Obtener información del mapa"><i class="bi bi-info-circle"></i></button>
+      <span class="tool-sep"></span>
+      <!-- Dibujo y medición -->
+      <button id="dibujarPoligono"  class="tool-btn" title="Dibujar polígono"><i class="bi bi-hexagon"></i></button>
+      <button id="dibujarLinea"     class="tool-btn" title="Dibujar línea"><i class="bi bi-pencil"></i></button>
+      <button id="medirArea"        class="tool-btn" title="Medir área"><i class="bi bi-bounding-box"></i></button>
+      <button id="medirPerimetro"   class="tool-btn" title="Medir perímetro / longitud"><i class="bi bi-rulers"></i></button>
+      <button id="limpiarDibujos"   class="tool-btn" title="Eliminar dibujos y medidas"><i class="bi bi-eraser"></i></button>
+      <span class="tool-sep"></span>
+      <!-- Imprimir -->
+      <button id="btnImprimir" class="tool-btn" title="Imprimir mapa"><i class="bi bi-printer"></i></button>
     </div>
   </nav>
 
-  <!-- SIDEBAR DE CAPAS -->
+  <!-- SIDEBAR DE CAPAS (overlay sobre el mapa) -->
   <aside id="layers-sidebar">
     <div class="sidebar-heading">
       <i class="bi bi-stack"></i>
@@ -123,12 +125,8 @@
       <div id="mensajeCargar"></div>
       <hr class="my-2" />
       <div class="d-flex gap-2">
-        <button id="subirArchivo" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-box-arrow-up"></i> Subir
-        </button>
-        <button id="limpiarArchivo" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> Limpiar
-        </button>
+        <button id="subirArchivo"  class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-up"></i> Subir</button>
+        <button id="limpiarArchivo" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Limpiar</button>
       </div>
     </div>
   </div>
@@ -160,12 +158,8 @@
       <div id="mensajeUbicarCoordenadas"></div>
       <hr class="my-2" />
       <div class="d-flex gap-2 justify-content-end">
-        <button id="ubicarCoordenadas" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-crosshair"></i> Ir
-        </button>
-        <button id="limpiarCoordenadas" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i> Limpiar
-        </button>
+        <button id="ubicarCoordenadas"  class="btn btn-sm btn-outline-primary"><i class="bi bi-crosshair"></i> Ir</button>
+        <button id="limpiarCoordenadas" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Limpiar</button>
       </div>
     </div>
   </div>
