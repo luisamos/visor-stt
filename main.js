@@ -82,9 +82,12 @@ global.mapa = new Map({
     overlays: [global.cubrir],
 });
 
-// Loader: esperar minimo 2s Y que el mapa haya renderizado
+// Loader: minimo 2s; ocultar cuando mapa renderice o tras 5s como maximo
 const tiempoMinimo = new Promise(resolve => setTimeout(resolve, 2000));
-const mapaListo   = new Promise(resolve => global.mapa.once('rendercomplete', resolve));
+const mapaListo    = new Promise(resolve => {
+    global.mapa.once('rendercomplete', resolve);
+    setTimeout(resolve, 5000); // fallback si los tiles tardan o fallan
+});
 
 Promise.all([tiempoMinimo, mapaListo]).then(() => {
     actualizarEscala();
