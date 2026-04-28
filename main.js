@@ -11,6 +11,7 @@ import { proyeccion3857, centroide3857 } from './js/configuracion.js';
 import { mousePosicion, actualizarEscala } from './js/controlMousePosicionEscala.js';
 import { inicializarControlCapas } from './js/controlCapas.js';
 import { zoomPorCodigo } from './js/controlZoomPorCodigo.js';
+import { cargarCapasWMS } from './js/controlCapasWMS.js';
 import './js/barraControles.js';
 import './js/controlInicioMasMenos.js';
 import './js/controlBuscar.js';
@@ -72,8 +73,11 @@ document.getElementById('toggleSidebar').addEventListener('click', () => {
     setTimeout(() => global.mapa.updateSize(), 320);
 });
 
-// Control de capas personalizado
+// Control de capas personalizado (carga inicial con capas base)
 inicializarControlCapas();
 
-// Zoom por parametro URL ?id=<codigo>
+// Cargar capas dinamicamente desde WMS GetCapabilities
+cargarCapasWMS();
+
+// Zoom por parametro URL ?id=<codigo> via WFS
 zoomPorCodigo();
