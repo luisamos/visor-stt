@@ -5,8 +5,8 @@ import { direcionServicioWMS } from './configuracion.js';
 import { actualizarPanelCapas } from './controlCapas.js';
 
 /**
- * Llama a WMS GetCapabilities, parsea las capas disponibles
- * y las agrega dinamicamente al mapa y al panel de capas.
+ * Llama a WMS GetCapabilities, toma solo los Layer queryable="1"
+ * y los agrega dinamicamente al mapa y al panel de capas.
  */
 export function cargarCapasWMS() {
     const url = `${direcionServicioWMS}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities`;
@@ -21,34 +21,30 @@ export function cargarCapasWMS() {
             const capas = parsearCapasWMS(doc);
 
             if (capas.length === 0) {
-                console.warn('[visor] WMS GetCapabilities: no se encontraron capas publicadas.');
+                console.warn('[visor] WMS GetCapabilities: no se encontraron capas queryable.');
                 return;
             }
 
             const grupoWMS = new LayerGroup({ title: 'Capas WMS', layers: capas });
 
-            // Agregar al mapa y al array global (usado por obtenerInformacion)
             global.gruposDeCapas.push(grupoWMS);
             global.mapa.addLayer(grupoWMS);
-
-            // Refrescar el panel lateral de capas
             actualizarPanelCapas();
 
-            console.info(`[visor] ${capas.length} capa(s) WMS cargada(s) desde GetCapabilities.`);
+            console.info(`[visor] ${capas.length} capa(s) WMS cargada(s).`);
         })
         .catch(err => console.warn('[visor] Error al obtener WMS GetCapabilities:', err));
 }
 
 /**
- * Parsea el XML de GetCapabilities y devuelve un array de TileLayer.
- * Solo toma capas que tienen un elemento <Name> con contenido
- * (evita el layer raiz contenedor que no tiene nombre util).
+ * Solo parsea <Layer queryable="1"> con un <Name> directo no vacio.
+ * Esto excluye el Layer raiz contenedor y capas no consultables.
  */
 function parsearCapasWMS(doc) {
     const capas = [];
 
-    // Filtrar Layer con <Name> directo y no vacio
-    const layerEls = Array.from(doc.querySelectorAll('Layer')).filter(el => {
+    // Seleccionar unicamente los Layer con queryable="1"
+    const layerEls = Array.from(doc.querySelectorAll('Layer[queryable="1"]')).filter(el => {
         const nameEl = el.querySelector(':scope > Name');
         return nameEl && nameEl.textContent.trim().length > 0;
     });
@@ -59,7 +55,6 @@ function parsearCapasWMS(doc) {
         const titleEl = layerEl.querySelector(':scope > Title');
         const title   = titleEl ? titleEl.textContent.trim() : name;
 
-        // Visibilidad inicial: encendida
         const capa = new TileLayer({
             title,
             visible: true,
