@@ -1,5 +1,6 @@
 import LayerGroup from 'ol/layer/Group';
 import TileWMS from 'ol/source/TileWMS';
+import ImageWMS from 'ol/source/ImageWMS';
 import { proyeccion3857, formatoText } from './configuracion';
 
 const botonInformacion = document.getElementById("obtenerInformacion"),
@@ -20,7 +21,7 @@ export function obtenerInformacion(e)
                 grupo.getLayers().forEach(layer => {                    
                     if(layer.get('id') !== 'poligonoLinea' && layer.getVisible() && layer.get('type') !== 'base' && layer.get('type') !== 'undefined') {
                         const source = layer.getSource();
-                        if(source instanceof TileWMS)
+                        if(source instanceof TileWMS || source instanceof ImageWMS)
                         {                            
                             const url = source.getFeatureInfoUrl(coordinate, resolucionVista, proyeccion3857, {'INFO_FORMAT': formatoText});
                             if (url)

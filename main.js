@@ -25,14 +25,14 @@ const osmLayer = new TileLayer({
     source: new OSM(),
     title: 'OpenStreetMap',
     type: 'base',
-    visible: true,
+    visible: false,
 });
 const googleSatelite = new TileLayer({
     source: new XYZ({
         url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
         maxZoom: 20, attributions: '© Google',
     }),
-    title: 'Google Satélite', type: 'base', visible: false,
+    title: 'Google Satélite', type: 'base', visible: true,
 });
 const googleCalles = new TileLayer({
     source: new XYZ({
