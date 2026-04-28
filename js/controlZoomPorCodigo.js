@@ -8,8 +8,9 @@ import { direcionServicioWFS, proyeccion3857 } from './configuracion.js';
 const CAPAS_WFS = ['poligonos', 'lineas'];
 
 /**
- * Lee el parametro ?id= de la URL, busca en todas las capas WFS definidas
- * y acerca el mapa al primer resultado encontrado, resaltandolo en verde.
+ * Lee el parametro ?id= de la URL, busca en todas las capas WFS
+ * con filtro OGC EqualTo (formato MapServer) y acerca el mapa
+ * al resultado encontrado resaltandolo en verde.
  */
 export function zoomPorCodigo() {
     const params = new URLSearchParams(window.location.search);
@@ -18,15 +19,13 @@ export function zoomPorCodigo() {
 
     console.info(`[visor] Buscando codigo "${codigo}" en: ${CAPAS_WFS.join(', ')}`);
 
-    // Buscar en ambas capas en paralelo
     const promesas = CAPAS_WFS.map(typeName => buscarEnCapaWFS(typeName, codigo));
 
     Promise.allSettled(promesas).then(resultados => {
-        // Reunir todos los features encontrados
         const features = [];
         resultados.forEach((r, i) => {
             if (r.status === 'fulfilled' && r.value.length > 0) {
-                console.info(`[visor] ${r.value.length} feature(s) encontrado(s) en "${CAPAS_WFS[i]}".`);
+                console.info(`[visor] ${r.value.length} feature(s) en "${CAPAS_WFS[i]}".`);
                 features.push(...r.value);
             }
         });
@@ -36,7 +35,6 @@ export function zoomPorCodigo() {
             return;
         }
 
-        // Estilo verde segun tipo de geometria
         const estiloPoligono = new Style({
             stroke: new Stroke({ color: '#27ae60', width: 3 }),
             fill:   new Fill({ color: 'rgba(39, 174, 96, 0.22)' }),
@@ -46,8 +44,7 @@ export function zoomPorCodigo() {
         });
 
         const source = new VectorSource({ features });
-
-        const layer = new VectorLayer({
+        const layer  = new VectorLayer({
             source,
             title: `Predio: ${codigo}`,
             style: (feature) => {
@@ -56,10 +53,8 @@ export function zoomPorCodigo() {
             },
         });
 
-        // Agregar capa resaltada al grupo de capas externas
         global.grupoCapasExternos.getLayers().push(layer);
 
-        // Acercar al extent del feature encontrado
         global.vista.fit(source.getExtent(), {
             size:     global.mapa.getSize(),
             padding:  [70, 60, 60, 60],
@@ -70,17 +65,41 @@ export function zoomPorCodigo() {
 }
 
 /**
- * Hace un GetFeature WFS a una capa con CQL_FILTER=codigo='<codigo>'.
- * Devuelve array de OL Features (puede ser vacio si no hay resultado).
+ * Construye un filtro OGC Filter EqualTo compatible con MapServer WFS.
+ *
+ * Genera:
+ *   <Filter xmlns="http://www.opengis.net/ogc">
+ *     <PropertyIsEqualTo>
+ *       <PropertyName>codigo</PropertyName>
+ *       <Literal>PAT-ALT-001</Literal>
+ *     </PropertyIsEqualTo>
+ *   </Filter>
+ */
+function buildOGCFilter(campo, valor) {
+    return (
+        '<Filter xmlns="http://www.opengis.net/ogc">' +
+            '<PropertyIsEqualTo>' +
+                `<PropertyName>${campo}</PropertyName>` +
+                `<Literal>${valor}</Literal>` +
+            '</PropertyIsEqualTo>' +
+        '</Filter>'
+    );
+}
+
+/**
+ * Consulta una capa WFS usando FILTER OGC EqualTo (MapServer).
+ * Devuelve un array de OL Features (vacio si no hay resultado).
  */
 function buscarEnCapaWFS(typeName, codigo) {
+    const filter = buildOGCFilter('codigo', codigo);
+
     const url =
         `${direcionServicioWFS}` +
-        `?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature` +
+        `?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature` +
         `&typeName=${encodeURIComponent(typeName)}` +
         `&outputFormat=application/json` +
-        `&CQL_FILTER=codigo='${encodeURIComponent(codigo)}'` +
-        `&srsname=EPSG:3857`;
+        `&srsname=EPSG:3857` +
+        `&FILTER=${encodeURIComponent(filter)}`;
 
     return fetch(url)
         .then(res => {
@@ -94,6 +113,6 @@ function buscarEnCapaWFS(typeName, codigo) {
         })
         .catch(err => {
             console.warn(`[visor] WFS "${typeName}" error:`, err.message);
-            return []; // no interrumpir la busqueda en las otras capas
+            return [];
         });
 }
