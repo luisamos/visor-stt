@@ -1,16 +1,13 @@
 export function inicializarControlCapas() {
     actualizarPanelCapas();
-
-    // Refrescar panel cuando se agregan o eliminan capas externas
     global.grupoCapasExternos.getLayers().on('add',    () => actualizarPanelCapas());
     global.grupoCapasExternos.getLayers().on('remove', () => actualizarPanelCapas());
 }
 
-function actualizarPanelCapas() {
+export function actualizarPanelCapas() {
     const container = document.getElementById('panel-capas-contenido');
     if (!container) return;
     container.innerHTML = '';
-
     global.gruposDeCapas.forEach((grupo, grupoIdx) => {
         container.appendChild(renderGrupo(grupo, grupoIdx));
     });
@@ -23,14 +20,12 @@ function renderGrupo(grupo, grupoIdx) {
     const section = document.createElement('div');
     section.className = 'layer-group';
 
-    // Cabecera del grupo
     const header = document.createElement('div');
     header.className = 'layer-group-header open';
     header.innerHTML = `
         <span><i class="bi bi-layers me-1"></i>${titulo}</span>
         <i class="bi bi-chevron-up toggle-chevron"></i>`;
 
-    // Cuerpo con las capas
     const body = document.createElement('div');
     body.className = 'layer-group-body';
 
@@ -42,7 +37,6 @@ function renderGrupo(grupo, grupoIdx) {
         });
     }
 
-    // Toggle accordion
     header.addEventListener('click', () => {
         body.classList.toggle('hidden');
         header.classList.toggle('open');
@@ -54,16 +48,15 @@ function renderGrupo(grupo, grupoIdx) {
 }
 
 function renderCapa(layer, grupoIdx, layerIdx) {
-    const item    = document.createElement('div');
+    const item     = document.createElement('div');
     item.className = 'layer-item';
 
-    const titulo  = layer.get('title') || 'Capa';
-    const visible = layer.getVisible();
-    const isBase  = layer.get('type') === 'base';
+    const titulo   = layer.get('title') || 'Capa';
+    const visible  = layer.getVisible();
+    const isBase   = layer.get('type') === 'base';
     const opacidad = layer.getOpacity();
 
     if (isBase) {
-        // Radio button para capas base
         item.innerHTML = `
             <label class="layer-radio-label">
                 <input type="radio" name="base-layer-${grupoIdx}" class="layer-radio" ${visible ? 'checked' : ''}>
@@ -80,7 +73,6 @@ function renderCapa(layer, grupoIdx, layerIdx) {
             }
         });
     } else {
-        // Checkbox + slider de opacidad para capas tematicas
         const pct = Math.round(opacidad * 100);
         item.innerHTML = `
             <div class="layer-row">
@@ -97,9 +89,7 @@ function renderCapa(layer, grupoIdx, layerIdx) {
             </div>`;
 
         const checkbox = item.querySelector('.layer-check');
-        checkbox.addEventListener('change', () => {
-            layer.setVisible(checkbox.checked);
-        });
+        checkbox.addEventListener('change', () => layer.setVisible(checkbox.checked));
 
         const slider   = item.querySelector('.layer-opacity-slider');
         const valLabel = item.querySelector('.opacity-val');
