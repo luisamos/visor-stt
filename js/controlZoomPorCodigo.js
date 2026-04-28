@@ -2,22 +2,28 @@ import GeoJSON from 'ol/format/GeoJSON';
 import VectorSource from 'ol/source/Vector';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Style, Stroke, Fill } from 'ol/style';
-import { direcionServicioWFS, proyeccion3857 } from './configuracion.js';
+import proj4 from 'proj4';
+import { register } from 'ol/proj/proj4';
+import { direcionServicioWFS, proyeccion3857, proyeccion32719 } from './configuracion.js';
 
-// Capas WFS donde se busca el codigo
-const CAPAS_WFS = ['poligonos', 'lineas'];
+// Registrar EPSG:32719 en OpenLayers para poder reproyectar los features
+proj4.defs('EPSG:32719', '+proj=utm +zone=19 +south +datum=WGS84 +units=m +no_defs');
+register(proj4);
+
+// Nombre del layer WFS en MapServer (NAME del LAYER en el .map)
+// Agregar mas nombres si existen layers equivalentes para lineas
+const CAPAS_WFS = ['buscarTitularPoligono'];
 
 /**
- * Lee el parametro ?id= de la URL, busca en todas las capas WFS
- * con filtro OGC EqualTo (formato MapServer) y acerca el mapa
- * al resultado encontrado resaltandolo en verde.
+ * Lee ?id= de la URL, busca en los layers WFS de MapServer
+ * con filtro OGC PropertyIsEqualTo y acerca el mapa al resultado en verde.
  */
 export function zoomPorCodigo() {
     const params = new URLSearchParams(window.location.search);
     const codigo = params.get('id');
     if (!codigo) return;
 
-    console.info(`[visor] Buscando codigo "${codigo}" en: ${CAPAS_WFS.join(', ')}`);
+    console.info(`[visor] Buscando codigo "${codigo}" en WFS: ${CAPAS_WFS.join(', ')}`);
 
     const promesas = CAPAS_WFS.map(typeName => buscarEnCapaWFS(typeName, codigo));
 
@@ -25,7 +31,7 @@ export function zoomPorCodigo() {
         const features = [];
         resultados.forEach((r, i) => {
             if (r.status === 'fulfilled' && r.value.length > 0) {
-                console.info(`[visor] ${r.value.length} feature(s) en "${CAPAS_WFS[i]}".`);
+                console.info(`[visor] ${r.value.length} feature(s) encontrado(s) en "${CAPAS_WFS[i]}".`);
                 features.push(...r.value);
             }
         });
@@ -65,13 +71,12 @@ export function zoomPorCodigo() {
 }
 
 /**
- * Construye un filtro OGC Filter EqualTo compatible con MapServer WFS.
+ * Filtro OGC Filter EqualTo para MapServer WFS.
  *
- * Genera:
  *   <Filter xmlns="http://www.opengis.net/ogc">
  *     <PropertyIsEqualTo>
  *       <PropertyName>codigo</PropertyName>
- *       <Literal>PAT-ALT-001</Literal>
+ *       <Literal>PAC-ALT-001</Literal>
  *     </PropertyIsEqualTo>
  *   </Filter>
  */
@@ -87,8 +92,10 @@ function buildOGCFilter(campo, valor) {
 }
 
 /**
- * Consulta una capa WFS usando FILTER OGC EqualTo (MapServer).
- * Devuelve un array de OL Features (vacio si no hay resultado).
+ * Consulta WFS al layer de MapServer:
+ *  - outputFormat=geojson  (segun wfs_getfeature_formatlist del .map)
+ *  - srsname=EPSG:32719    (SRS nativo del layer en MapServer)
+ *  - datos se reproyectan a EPSG:3857 al leer los features en OL
  */
 function buscarEnCapaWFS(typeName, codigo) {
     const filter = buildOGCFilter('codigo', codigo);
@@ -97,8 +104,8 @@ function buscarEnCapaWFS(typeName, codigo) {
         `${direcionServicioWFS}` +
         `?SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature` +
         `&typeName=${encodeURIComponent(typeName)}` +
-        `&outputFormat=application/json` +
-        `&srsname=EPSG:3857` +
+        `&outputFormat=geojson` +
+        `&srsname=EPSG:32719` +
         `&FILTER=${encodeURIComponent(filter)}`;
 
     return fetch(url)
@@ -109,7 +116,12 @@ function buscarEnCapaWFS(typeName, codigo) {
         .then(data => {
             if (!data.features || data.features.length === 0) return [];
             const format = new GeoJSON();
-            return format.readFeatures(data, { featureProjection: proyeccion3857 });
+            // dataProjection = SRS en que vienen los datos (32719)
+            // featureProjection = SRS que usa el mapa (3857)
+            return format.readFeatures(data, {
+                dataProjection:    proyeccion32719,
+                featureProjection: proyeccion3857,
+            });
         })
         .catch(err => {
             console.warn(`[visor] WFS "${typeName}" error:`, err.message);
