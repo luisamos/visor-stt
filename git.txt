@@ -1,0 +1,9 @@
+#
+# Sistema de tasación de terrenos - STT
+#
+git init
+git add .
+git commit -m "v.2.0 | 28/04/2026 11:50"
+git branch -M main
+git remote add origin https://github.com/luisamos/visor-stt.git
+git push -u origin main
