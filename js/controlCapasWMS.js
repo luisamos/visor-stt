@@ -1,14 +1,13 @@
-import TileLayer from 'ol/layer/Tile';
-import TileWMS from 'ol/source/TileWMS';
+import ImageLayer from 'ol/layer/Image';
+import ImageWMS from 'ol/source/ImageWMS';
 import LayerGroup from 'ol/layer/Group';
 import { direcionServicioWMS } from './configuracion.js';
 import { actualizarPanelCapas } from './controlCapas.js';
 
 /**
- * Llama a WMS GetCapabilities y carga solo las capas publicadas:
- * aquellas con queryable="1" opaque="0" cascaded="0".
- * Los layers contenedores (STT raiz) solo tienen queryable="1"
- * sin los otros atributos, por eso quedan excluidos.
+ * Carga capas WMS desde GetCapabilities usando ImageLayer+ImageWMS:
+ * genera UNA sola peticion por capa por render en lugar de
+ * cientos de peticiones de tiles (TileWMS).
  */
 export function cargarCapasWMS() {
     const url = `${direcionServicioWMS}?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetCapabilities`;
@@ -23,7 +22,7 @@ export function cargarCapasWMS() {
             const capas = parsearCapasWMS(doc);
 
             if (capas.length === 0) {
-                console.warn('[visor] WMS GetCapabilities: no se encontraron capas publicadas.');
+                console.warn('[visor] WMS GetCapabilities: no se encontraron capas.');
                 return;
             }
 
@@ -32,23 +31,19 @@ export function cargarCapasWMS() {
             global.mapa.addLayer(grupoWMS);
             actualizarPanelCapas();
 
-            console.info(`[visor] ${capas.length} capa(s) WMS cargada(s): ${capas.map(c => c.get('title')).join(', ')}`);
+            console.info(`[visor] ${capas.length} capa(s) WMS: ${capas.map(c => c.get('title')).join(', ')}`);
         })
-        .catch(err => console.warn('[visor] Error en WMS GetCapabilities:', err));
+        .catch(err => console.warn('[visor] Error WMS GetCapabilities:', err));
 }
 
 /**
- * Selector: Layer[queryable="1"][opaque="0"][cascaded="0"]
- * Solo coincide con los layers reales (poligonos, lineas).
- * Los layers contenedores como <Layer queryable="1"> sin opaque/cascaded
- * quedan excluidos automaticamente.
+ * Solo toma Layer[queryable="1"][opaque="0"][cascaded="0"] (layers reales).
+ * Usa ImageWMS: 1 request por capa por render, vs cientos con TileWMS.
  */
 function parsearCapasWMS(doc) {
     const capas = [];
 
-    const layerEls = doc.querySelectorAll('Layer[queryable="1"][opaque="0"][cascaded="0"]');
-
-    layerEls.forEach(layerEl => {
+    doc.querySelectorAll('Layer[queryable="1"][opaque="0"][cascaded="0"]').forEach(layerEl => {
         const nameEl  = layerEl.querySelector(':scope > Name');
         const titleEl = layerEl.querySelector(':scope > Title');
         if (!nameEl || !nameEl.textContent.trim()) return;
@@ -56,23 +51,19 @@ function parsearCapasWMS(doc) {
         const name  = nameEl.textContent.trim();
         const title = titleEl ? titleEl.textContent.trim() : name;
 
-        const capa = new TileLayer({
+        capas.push(new ImageLayer({
             title,
             visible: true,
-            source: new TileWMS({
+            source: new ImageWMS({
                 url: direcionServicioWMS,
                 params: {
                     LAYERS:  name,
-                    TILED:   true,
                     FORMAT:  'image/png',
                     VERSION: '1.1.1',
                 },
                 serverType: 'mapserver',
-                transition: 0,
             }),
-        });
-
-        capas.push(capa);
+        }));
     });
 
     return capas;
