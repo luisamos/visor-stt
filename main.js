@@ -20,14 +20,13 @@ import './js/controlCargarArchivoLocal.js';
 import './js/controlUbicarCoordenadas.js';
 import { obtenerInformacion } from './js/controlObtenerInformacion.js';
 
-// ── Capas base ────────────────────────────────────────────────────────────────
+// ── Capas base ──────────────────────────────────────────
 const osmLayer = new TileLayer({
     source: new OSM(),
     title: 'OpenStreetMap',
     type: 'base',
     visible: true,
 });
-
 const googleSatelite = new TileLayer({
     source: new XYZ({
         url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
@@ -38,7 +37,6 @@ const googleSatelite = new TileLayer({
     type: 'base',
     visible: false,
 });
-
 const googleCalles = new TileLayer({
     source: new XYZ({
         url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
@@ -49,7 +47,6 @@ const googleCalles = new TileLayer({
     type: 'base',
     visible: false,
 });
-
 const osmNoche = new TileLayer({
     source: new XYZ({
         url: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
@@ -60,7 +57,6 @@ const osmNoche = new TileLayer({
     type: 'base',
     visible: false,
 });
-
 const esriNoche = new TileLayer({
     source: new XYZ({
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
@@ -72,20 +68,20 @@ const esriNoche = new TileLayer({
     visible: false,
 });
 
-// ── Overlay popup ─────────────────────────────────────────────────────────────
+// ── Overlay popup ─────────────────────────────────────────
 global.cubrir = new Overlay({
     element: document.getElementById('popup'),
     autoPan: { animation: { duration: 250 } },
 });
 
-// ── Grupos de capas ───────────────────────────────────────────────────────────
+// ── Grupos de capas ──────────────────────────────────────
 const capasBase = new LayerGroup({
     title: 'Capas Base',
     layers: [osmLayer, googleSatelite, googleCalles, osmNoche, esriNoche],
 });
 global.grupoCapasExternos = new LayerGroup({ title: 'Capas Externas', layers: [] });
 
-// ── Vista y mapa ──────────────────────────────────────────────────────────────
+// ── Vista y mapa ─────────────────────────────────────────
 global.vista = new View({ projection: proyeccion3857, center: centroide3857, zoom: 14 });
 const controles = defaultControls({ zoom: false, attribution: false, rotate: true });
 global.gruposDeCapas = [capasBase, global.grupoCapasExternos];
@@ -96,6 +92,17 @@ global.mapa = new Map({
     view: global.vista,
     controls: controles,
     overlays: [global.cubrir],
+});
+
+// Ocultar loader cuando el mapa termine su primer render
+global.mapa.once('rendercomplete', () => {
+    actualizarEscala();
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+        loader.classList.add('oculto');
+        // Remover del DOM tras la transicion para liberar memoria
+        loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+    }
 });
 
 // Popup cerrar
@@ -109,7 +116,6 @@ cerrar.onclick = function () {
 // Mouse posicion y escala
 global.mapa.on('pointermove', mousePosicion);
 global.mapa.getView().on('change:resolution', actualizarEscala);
-global.mapa.once('rendercomplete', () => actualizarEscala());
 
 // Obtener informacion al hacer click
 global.mapa.on('singleclick', (e) => obtenerInformacion(e));
@@ -121,10 +127,10 @@ document.getElementById('toggleSidebar').addEventListener('click', () => {
     setTimeout(() => global.mapa.updateSize(), 320);
 });
 
-// Control de capas personalizado (carga inicial)
+// Control de capas personalizado
 inicializarControlCapas();
 
-// Capas WMS desde GetCapabilities (carga asincrona)
+// Capas WMS desde GetCapabilities (asincrono)
 cargarCapasWMS();
 
 // Zoom a predio via WFS si URL contiene ?id=<codigo>
