@@ -3,8 +3,8 @@ import Icon from 'ol/style/Icon';
 import imagenVerde from '../imgs/ubicacionVerde.png';
 import imagenRojo from '../imgs/ubicacionRojo.png';
 
-export const direcionServicioWMS = 'http://127.0.0.1/servicio/wms',
-    direcionServicioWFS = 'http://127.0.0.1/servicio/wfs',
+export const direcionServicioWMS = 'http://127.0.0.3/servicio/wms',
+    direcionServicioWFS = 'http://127.0.0.3/servicio/wfs',
     centroide3857 = [-7819510.69315815, -2036265.3964852241],
     proyeccion3857 = 'EPSG:3857',
     proyeccion4326 = 'EPSG:4326',
@@ -33,11 +33,12 @@ export const direcionServicioWMS = 'http://127.0.0.1/servicio/wms',
         })
     });
 
-export function mensaje(id, mensaje, tipo) {
-    const alertPlaceholder = document.getElementById(id);
-    const texto = '<div class="alert alert-' + tipo + ' alert-dismissible py-1 px-2" role="alert">' +
-        ' <div>' + mensaje + '</div>' +
-        ' <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="transform: scale(0.8);"></button>' +
-        '</div>';
-    alertPlaceholder.innerHTML = texto;
+export function mensaje(id, texto, tipo) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML =
+        `<div class="alert alert-${tipo} alert-dismissible py-1 px-2" role="alert">` +
+        ` <div>${texto}</div>` +
+        ` <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close" style="transform:scale(0.8);"></button>` +
+        `</div>`;
 }
