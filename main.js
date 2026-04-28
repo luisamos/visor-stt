@@ -30,42 +30,30 @@ const osmLayer = new TileLayer({
 const googleSatelite = new TileLayer({
     source: new XYZ({
         url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-        maxZoom: 20,
-        attributions: '© Google',
+        maxZoom: 20, attributions: '© Google',
     }),
-    title: 'Google Satélite',
-    type: 'base',
-    visible: false,
+    title: 'Google Satélite', type: 'base', visible: false,
 });
 const googleCalles = new TileLayer({
     source: new XYZ({
         url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
-        maxZoom: 20,
-        attributions: '© Google',
+        maxZoom: 20, attributions: '© Google',
     }),
-    title: 'Google Calles',
-    type: 'base',
-    visible: false,
+    title: 'Google Calles', type: 'base', visible: false,
 });
 const osmNoche = new TileLayer({
     source: new XYZ({
         url: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        maxZoom: 19,
-        attributions: '© CartoDB',
+        maxZoom: 19, attributions: '© CartoDB',
     }),
-    title: 'OSM Noche',
-    type: 'base',
-    visible: false,
+    title: 'OSM Noche', type: 'base', visible: false,
 });
 const esriNoche = new TileLayer({
     source: new XYZ({
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
-        maxZoom: 16,
-        attributions: '© Esri',
+        maxZoom: 16, attributions: '© Esri',
     }),
-    title: 'ESRI Noche',
-    type: 'base',
-    visible: false,
+    title: 'ESRI Noche', type: 'base', visible: false,
 });
 
 // ── Overlay popup ─────────────────────────────────────────
@@ -94,13 +82,15 @@ global.mapa = new Map({
     overlays: [global.cubrir],
 });
 
-// Ocultar loader cuando el mapa termine su primer render
-global.mapa.once('rendercomplete', () => {
+// Loader: esperar minimo 2s Y que el mapa haya renderizado
+const tiempoMinimo = new Promise(resolve => setTimeout(resolve, 2000));
+const mapaListo   = new Promise(resolve => global.mapa.once('rendercomplete', resolve));
+
+Promise.all([tiempoMinimo, mapaListo]).then(() => {
     actualizarEscala();
     const loader = document.getElementById('app-loader');
     if (loader) {
         loader.classList.add('oculto');
-        // Remover del DOM tras la transicion para liberar memoria
         loader.addEventListener('transitionend', () => loader.remove(), { once: true });
     }
 });
